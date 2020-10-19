@@ -2,68 +2,72 @@
 import pandas as pd
 from splinter import Browser
 from bs4 import BeautifulSoup
-from datetime import datetime
-import os
 import time
 
 
 def init_browser():
     # Capture path to Chrome Driver & Initialize browser
     executable_path = {'executable_path':"chromedriver.exe"}
-    browser = Browser("chrome", **executable_path, headless=False)
+    return Browser("chrome", **executable_path, headless=False)
 
 def scrape():
     browser = init_browser()
     mars_facts_data = {}
 
+    # Visit web page
     nasa = "https://mars.nasa.gov/news/"
     browser.visit(nasa)
     time.sleep(2)
 
+    # Scrape page into Soup
     html = browser.html
     soup = BeautifulSoup(html,"html.parser")
 
-    #scrapping latest news about mars from nasa
-    news_title = soup.find("div",class_="content_title").text
-    news_paragraph = soup.find("div", class_="article_teaser_body").text
-    mars_facts_data['news_title'] = news_title
-    mars_facts_data['news_paragraph'] = news_paragraph 
+    # Scrapping latest news about mars from nasa
+    slide_element = soup.select_one("ul.item_list li.slide")
+    news_title = slide_element.find("div",class_="content_title").get_text()
+    news_paragraph = slide_element.find("div", class_="article_teaser_body").get_text()
+    # Close the browser after scraping
+    #browser.quit()
     
-    #Mars Featured Image
-    nasa_image = "https://www.jpl.nasa.gov/spaceimages/?search=&category=featured#submit"
-    browser.visit(nasa_image)
+    # Mars Featured Image
+    browser = init_browser()
+    JPL_Mars = "https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars"
+    img_base_url = 'https://www.jpl.nasa.gov'
+    browser.visit(JPL_Mars)
     time.sleep(2)
-
-    from urllib.parse import urlsplit
-    base_url = "{0.scheme}://{0.netloc}/".format(urlsplit(nasa_image))
+    html = browser.html
+    soup = BeautifulSoup(html, "html.parser")
+    results = soup.select('a',class_="button fancybox")
+    link_list=[]
+    for result in results:
+    # Error handling
+      try:
+        img_list = result.get('data-fancybox-href')
+               
+        if img_list:
+          link_list.append(img_list)
+           
+         
+      except Exception as e:
+        print(e)
+    featured_image_url = img_base_url + link_list[0]
     
-    xpath = "//*[@id=\"page\"]/section[3]/div/ul/li[1]/a/div/div[2]/img"
+    #browser.quit()
 
-    #Use splinter to click on the mars featured image
-    #to bring the full resolution image
-    results = browser.find_by_xpath(xpath)
-    img = results[0]
-    img.click()
-    time.sleep(2)
     
-    #get image url using BeautifulSoup
-    html_image = browser.html
-    soup = BeautifulSoup(html_image, "html.parser")
-    img_url = soup.find("img", class_="fancybox-image")["src"]
-    full_img_url = base_url + img_url
-    mars_facts_data["featured_image"] = full_img_url
-      
-    # #### Mars Weather
-
-    #get mars weather's latest tweet from the website
+    # Mars Weather
+    # Get Mars weather's latest tweet from the website
+    browser = init_browser()
     url_weather = "https://twitter.com/marswxreport?lang=en"
     browser.visit(url_weather)
     html_weather = browser.html
     soup = BeautifulSoup(html_weather, "html.parser")
-    mars_weather = soup.find("p", class_="TweetTextSize TweetTextSize--normal js-tweet-text tweet-text").text
+    mars_weather = soup.find("div", class_="css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0").text
     mars_facts_data["mars_weather"] = mars_weather
 
     # #### Mars Facts
+    browser = init_browser()
     url_facts = "https://space-facts.com/mars/"
     time.sleep(2)
     table = pd.read_html(url_facts)
@@ -75,6 +79,8 @@ def scrape():
     mars_html_table = clean_table.to_html()
     mars_html_table = mars_html_table.replace("\n", "")
     mars_facts_data["mars_facts_table"] = mars_html_table
+
+
 
     # Mars Hemispheres Web Scraper
 def hemisphere(browser):
@@ -121,14 +127,11 @@ def scrape_hemisphere(html_text):
     }
     return hemisphere
 
-
-#################################################
 # Main Web Scraping Bot
-#################################################
 def scrape_all():
     executable_path = {"executable_path": "chromedriver"}
     browser = Browser("chrome", **executable_path, headless=False)
-    news_title, news_paragraph = scrape(browser)
+    news_title, news_paragraph = (browser)
     img_url = nasa_image(browser)
     mars_weather = twitter_weather(browser)
     facts = mars_facts()
@@ -138,14 +141,16 @@ def scrape_all():
     data = {
         "news_title": news_title,
         "news_paragraph": news_paragraph,
-        "featured_image": img_url,
+        "featured_image": featured_image_url,
         "weather": mars_weather,
-        "facts": facts,
+        "facts": mars_html_table,
         "hemispheres": hemisphere_image_urls,
         "last_modified": timestamp
     }
     browser.quit()
-    return data 
+    return data  
 
+​# Define Main Behavior
 if __name__ == "__main__":
-    print(scrape_all())
+    app.run(debug=True)
+    
