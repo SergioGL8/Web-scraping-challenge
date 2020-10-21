@@ -8,7 +8,7 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head> 
-<body class="text-black" style="background-color: black;">
+<body class="text-black" style="background-color: white;">
     <div class="container">
         <!-- Jumbotron -->
         <div class="jumbotron text-center">
@@ -22,7 +22,7 @@
                     <div class="media-body">
                         <h4>Latest Mars News</h4>
                         <h5 style="color: #DC143C">{{mars.news_title}}</h5>
-                        <p style="color: #8B0000">{{mars.news_p}}</p>
+                        <p style="color: #8B0000">{{mars.news_paragraph}}</p>
                     </div>
                 </div>
             </div>
@@ -33,7 +33,7 @@
                 <div class="col-lg-8 col-md-8 col-sm-12">
                 <h4>Featured Mars Image</h4>
                     <!-- If Images are False/None/Non-Existent, Then Default to Error Message -->
-                    <img src="{{mars.featured_image | default('static/images/error.png', true) }}" class="img-responsive" style="max-width:100%; max-height: auto;" alt="Mars Featured Image"/>
+                    <img src="{{mars.main_image}}" class="img-responsive" style="max-width:100%; max-height: auto;" alt="Mars Featured Image"/>
                 </div>
                 <!-- Mars Weather -->
                 <div class="col-lg-4 col-md-4 col-sm-12" id="mars-weather">
@@ -64,7 +64,7 @@
                     <div class="col-md-6">
                         <div class="card text-white bg-danger" style="margin: 30px;">
                             <!-- If Images are False/None/Non-Existent, Then Default to Error Message -->
-                            <img class="card-img-top" src="{{hemisphere.img_url | default('static/images/error.png', true)}}" alt="..."/>
+                            <img class="card-img-top" src="{{hemisphere.img_url}}" alt="..."/>
                             <div class="card-body">
                                 <p class="card-text">{{hemisphere.title}}</p>
                             </div>
